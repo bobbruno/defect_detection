@@ -58,8 +58,10 @@ if __name__=='__main__':
     )
     x = np.apply_along_axis(hot_encode, axis=1, arr=x.reshape(-1, 26 * 26))
     y = clean_df.label.compute().values
+    label_dist = clean_df.groupby('label').size().compute()
+    label_classes = numpy.array({l: i for (i, l) in enumerate(label_dist.index.values)})
 
     logging.info(f"x: {x.shape}")
     logging.info(f"y: {y.shape}")
-    np.savez_compressed(output_path / "data.npz", x, y)
+    np.savez_compressed(output_path / "data.npz", x=x, y=y, label_classes=label_classes)
     
