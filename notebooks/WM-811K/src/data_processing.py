@@ -4,7 +4,7 @@ import logging
 import dask.dataframe as dd
 import pandas as pd
 import numpy as np
-import cv2
+from PIL import Image
 from pathlib import Path
 from dask.distributed import Client
 
@@ -42,13 +42,19 @@ def process_data(input_df: dd.DataFrame):
 
 
 def calc_x_y(clean_df: dd.DataFrame):
+    def resize(arr):
+        return (np.array(
+            Image.fromarray(
+                (arr*255./2.).astype('uint8'), mode='L'
+            ).resize((26, 26), resample=Image.NEAREST).getdata()
+        )*2./254.).reshape(26, 26).astype('uint8')
     logging.info("Calculating x and y")
     x = np.stack(
         clean_df.apply(
-            lambda x: x.waferMap.reshape(
-                (26, 26, 1)
-            ) if x.waferMapDim[0] == 26 else cv2.resize(
-                x.waferMap.reshape(x.waferMapDim[0], x.waferMapDim[1]), (26, 26)
+            lambda x: x.waferMap.reshape((26, 26, 1)) \
+            if x.waferMapDim[0] == 26 \
+            else resize(
+                x.waferMap.reshape(x.waferMapDim[0], x.waferMapDim[1])
             ).reshape(26, 26, 1),
             axis=1,
             meta=pd.Series({'x': [np.zeros((26, 26, 1))]})
