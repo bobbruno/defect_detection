@@ -16,7 +16,7 @@ def hot_encode(img_arr):
     return new_arr.reshape((26, 26, 3))
 
 
-def load_data(client, input_path: Path, file_name: str="wafers.pkl.gz", n_partitions=32):
+def load_data(client, input_path: Path, file_name: str="wafers.pkl.gz", n_partitions=256):
     logging.info("Loading data")
 #     with open(input_path / file_name, 'rb') as f:
 #         temp_df = pickle.load(f, encoding="bytes") 

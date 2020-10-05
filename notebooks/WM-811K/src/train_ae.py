@@ -4,6 +4,7 @@ import numpy as np
 import argparse
 from tensorflow.keras import layers, Input, models
 from pathlib import Path
+import logging
 
 
 def parse_arguments():
@@ -54,21 +55,22 @@ def create_autoencoder(data, epochs, batch_size):
 def load_data(path: str, file_name: str="data.npz", limit: int=None):
     file_path = Path(path) / file_name
     with np.load(str(file_path), allow_pickle=True) as data:
-        x = data['arr_0']
-        y = data['arr_1']
+        x = data['x']
+        y = data['y']
+    print(np.unique(y, return_counts=True))
     if limit:
         return (x[:limit], y[:limit])
     else:
         return (x, y)
 
 if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
     args = parse_arguments()
-    x, y = load_data(
-        args.train, 
-        "data.npz",
-        limit=args.max_rows
-    )
-    ae, encoder, decoder = create_autoencoder(x, epochs=15, batch_size=1024)
+    x, y = load_data(args.train, "data.npz", limit=args.max_rows)
+    ae, encoder, decoder = create_autoencoder(x, epochs=args.num_epochs, batch_size=args.batch_size)
+    logging.info(f"Autoencoder: {ae.summary()}")
+    logging.info(f"Encoder: {encoder.summary()}")
+    logging.info(f"Dncoder: {decoder.summary()}")
     ae.save(str(Path(args.model_save_dir) / "ae.h5" ))
     encoder.save(str(Path(args.model_save_dir) / "encoder.h5" ))
     decoder.save(str(Path(args.model_save_dir) / "decoder.h5" ))
